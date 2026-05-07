@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soap Manufacturing System - Inventory & Batch Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-container {
+            max-width: 400px;
+            margin: 50px auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #999;
+            font-size: 0.95em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        input[type="date"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        input[type="email"]:focus,
+        input[type="date"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 0.9em;
+            width: auto;
+            margin-top: 5px;
+        }
+
+        .btn-add {
+            background: #4caf50;
+            color: white;
+            width: auto;
+            padding: 10px 20px;
+            margin-top: 10px;
+        }
+
+        .btn-add:hover {
+            background: #45a049;
+        }
+
+        .btn-remove {
+            background: #f44336;
+            color: white;
+            width: auto;
+            padding: 6px 12px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
+        .btn-remove:hover {
+            background: #da190b;
+        }
+
+        .error-message {
+            color: #f44336;
+            font-size: 0.9em;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4caf50;
+            display: none;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: none;
+        }
+
+        .main-container.logged-in {
+            display: block;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-info p {
+            margin: 5px 0;
+            font-size: 0.95em;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e0e0e0;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn:hover {
+            background: #f0f0f0;
+            color: #667eea;
+        }
+
+        .tab-btn.active {
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-bottom: 3px solid white;
+        }
+
+        .tab-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+            font-size: 1.5em;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .calculated-field {
+            background: #f8f9fa;
+            cursor: not-allowed;
+        }
+
+        .dynamic-row {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .dynamic-row h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .row-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            font-weight: 700;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .confirmation-list {
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .confirmation-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            color: #333;
+        }
+
+        .confirmation-item:last-child {
+            border-bottom: none;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn-confirm {
+            background: #4caf50;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-confirm:hover {
+            background: #45a049;
+        }
+
+        .btn-cancel {
+            background: #f44336;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-cancel:hover {
+            background: #da190b;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            color: #1565c0;
+            font-size: 0.95em;
+        }
+
+        .search-dropdown {
+            position: relative;
+        }
+
+        .dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+
+        .dropdown-list.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background: #f0f0f0;
+        }
+
+        .dropdown-item.selected {
+            background: #667eea;
+            color: white;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-box input,
+        .search-box select {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .required {
+            color: #f44336;
+        }
+
+        .field-info {
+            font-size: 0.85em;
+            color: #999;
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .user-info {
+                text-align: left;
+            }
+
+            .tab-btn {
+                min-width: 100px;
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            .search-box input,
+            .search-box select {
+                min-width: unset;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGIN CONTAINER -->
+    <div class="login-container" id="loginContainer">
+        <div class="login-header">
+            <h1>🧼 Soap Manufacturing</h1>
+            <p>Inventory & Batch Management System</p>
+        </div>
+        
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="loginId">Employee ID <span class="required">*</span></label>
+                <input type="text" id="loginId" placeholder="Enter your employee ID" required>
+                <div class="error-message" id="loginIdError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="loginPassword">Password <span class="required">*</span></label>
+                <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                <div class="error-message" id="loginPasswordError"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Login</button>
+            
+            <div class="error-message" id="loginError" style="margin-top: 15px; text-align: center;"></div>
+            <div class="info-box" style="margin-top: 20px; display: block;">
+                <strong>Demo Credentials:</strong><br>
+                ID: EMP001 | Password: password123<br>
+                ID: EMP002 | Password: password123
+            </div>
+        </form>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="main-container" id="mainContainer">
+        <!-- HEADER -->
+        <div class="header">
+            <div>
+                <h1>🧼 Soap Manufacturing System</h1>
+                <p>Inventory & Batch Management</p>
+            </div>
+            <div class="user-info">
+                <p><strong id="userName">User</strong></p>
+                <p>Role: <span id="userRole">-</span></p>
+                <p>Company: <span id="userCompany">-</span></p>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab(event, 'raw-material')">
+                📦 Raw Material Entry
+            </button>
+            <button class="tab-btn" onclick="switchTab(event, 'batch-entry')">
+                🔄 Batch Entry
+            </button>
+            <button class="tab-btn" id="pricingTab" onclick="switchTab(event, 'product-pricing')">
+                💰 Product Pricing
+            </button>
+        </div>
+
+        <!-- TAB 1: RAW MATERIAL ENTRY -->
+        <div id="raw-material" class="tab-content active">
+            <div class="section">
+                <h2>📦 Raw Material Entry</h2>
+                <div class="info-box">
+                    Record ingredient purchases from suppliers. Add multiple ingredients in one PO.
+                </div>
+
+                <form id="rawMaterialForm">
+                    <!-- Single Input Fields -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="rmDate">Date <span class="required">*</span></label>
+                            <input type="date" id="rmDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="rmPoNumber">PO Number <span class="required">*</span></label>
+                            <input type="text" id="rmPoNumber" placeholder="e.g., PO-2024-001" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="rmCompanyName">Company Name <span class="required">*</span></label>
+                            <input type="text" id="rmCompanyName" placeholder="Supplier name" required>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Ingredients Section -->
+                    <h3 style="color: #667eea; margin-top: 25px; margin-bottom: 15px;">Add Ingredients</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="rmIngredient">Ingredient <span class="required">*</span></label>
+                            <input type="text" id="rmIngredient" placeholder="Search ingredient..." autocomplete="off">
+                            <div class="dropdown-list" id="rmIngredientDropdown"></div>
+                            <div class="error-message" id="rmIngredientError"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="rmWeight">Weight (oz) <span class="required">*</span></label>
+                            <input type="number" id="rmWeight" placeholder="Enter weight" step="0.01" min="0">
+                            <div class="error-message" id="rmWeightError"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="rmPrice">Price ($) <span class="required">*</span></label>
+                            <input type="number" id="rmPrice" placeholder="Enter total price" step="0.01" min="0">
+                            <div class="error-message" id="rmPriceError"></div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-add" onclick="addRawMaterialRow()">
+                        + Add Ingredient
+                    </button>
+
+                    <!-- Added Ingredients List -->
+                    <div id="rmIngredientsList" style="margin-top: 20px;"></div>
+
+                    <!-- Submit Button -->
+                    <div style="margin-top: 30px; display: flex; gap: 10px;">
+                        <button type="button" class="btn btn-primary" onclick="submitRawMaterial()" style="flex: 1;">
+                            Submit All Records
+                        </button>
+                        <button type="reset" class="btn btn-secondary" style="flex: 1;">Clear Form</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- TAB 2: BATCH ENTRY -->
+        <div id="batch-entry" class="tab-content">
+            <div class="section">
+                <h2>🔄 Batch Entry</h2>
+                <div class="info-box">
+                    Create production batches with ingredients. Prices are auto-calculated from latest raw material entries.
+                </div>
+
+                <form id="batchForm">
+                    <!-- Single Input Fields -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="beDate">Date of Production <span class="required">*</span></label>
+                            <input type="date" id="beDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="beBatchId">Batch ID <span class="required">*</span></label>
+                            <input type="text" id="beBatchId" placeholder="Auto-generated" readonly class="calculated-field">
+                            <div class="field-info">Auto-generated ID</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="bePreparedBy">Prepared By <span class="required">*</span></label>
+                            <input type="text" id="bePreparedBy" placeholder="Search employee..." autocomplete="off">
+                            <div class="dropdown-list" id="bePreparedByDropdown"></div>
+                            <div class="error-message" id="bePreparedByError"></div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Batch Items Section -->
+                    <h3 style="color: #667eea; margin-top: 25px; margin-bottom: 15px;">Batch Items</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="beProductName">Product Name <span class="required">*</span></label>
+                            <input type="text" id="beProductName" placeholder="Search product..." autocomplete="off">
+                            <div class="dropdown-list" id="beProductNameDropdown"></div>
+                            <div class="error-message" id="beProductNameError"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="beIngredient">Ingredient <span class="required">*</span></label>
+                            <input type="text" id="beIngredient" placeholder="Search ingredient..." autocomplete="off">
+                            <div class="dropdown-list" id="beIngredientDropdown"></div>
+                            <div class="error-message" id="beIngredientError"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="beWeight">Weight (oz) <span class="required">*</span></label>
+                            <input type="number" id="beWeight" placeholder="Enter weight" step="0.01" min="0">
+                            <div class="error-message" id="beWeightError"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="bePrice">Price ($)</label>
+                            <input type="number" id="bePrice" placeholder="Auto-calculated" readonly class="calculated-field" step="0.01">
+                            <div class="field-info">Auto-calculated from raw materials</div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-add" onclick="addBatchRow()">
+                        + Add Item
+                    </button>
+
+                    <!-- Added Batch Items List -->
+                    <div id="beBatchItemsList" style="margin-top: 20px;"></div>
+
+                    <!-- Submit Button -->
+                    <div style="margin-top: 30px; display: flex; gap: 10px;">
+                        <button type="button" class="btn btn-primary" onclick="submitBatch()" style="flex: 1;">
+                            Proceed
+                        </button>
+                        <button type="reset" class="btn btn-secondary" style="flex: 1;">Clear Form</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- TAB 3: PRODUCT PRICING -->
+        <div id="product-pricing" class="tab-content">
+            <div class="section">
+                <h2>💰 Product Pricing Report</h2>
+                <div class="info-box">
+                    View and manage product pricing. Search by product name, batch ID, or date range. (Admin only)
+                </div>
+
+                <!-- Search Filters -->
+                <div class="search-box">
+                    <input type="text" id="searchProductName" placeholder="Search by Product Name...">
+                    <input type="text" id="searchBatchId" placeholder="Search by Batch ID...">
+                    <input type="date" id="searchFromDate" placeholder="From Date">
+                    <input type="date" id="searchToDate" placeholder="To Date">
+                    <button class="btn btn-primary" onclick="searchPricingData()" style="width: auto; padding: 12px 30px;">
+                        Search
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetPricingSearch()" style="width: auto; padding: 12px 30px;">
+                        Reset
+                    </button>
+                </div>
+
+                <!-- Results Table -->
+                <div class="table-container">
+                    <table id="pricingTable">
+                        <thead>
+                            <tr>
+                                <th>Batch ID</th>
+                                <th>Date</th>
+                                <th>Product Name</th>
+                                <th>Total Price ($)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pricingTableBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #999;">
+                                    Load data or search to view results
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRMATION MODAL -->
+    <div class="modal" id="confirmationModal">
+        <div class="modal-content">
+            <div class="modal-header">Confirm Submission</div>
+            <div class="modal-body">
+                <p>Please review the information below before submitting:</p>
+                <div class="confirmation-list" id="confirmationList"></div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-confirm" onclick="confirmSubmission()">Confirm & Submit</button>
+                <button class="btn-cancel" onclick="cancelSubmission()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== CONFIG =====
+        const SHEET_ID = '1-twqY8w9hto179qrQ5nd0BSc8o85d13kVB5DyDaaKcM';
+        const API_BASE = 'https://script.google.com/macros/d/AKfycbyJMSRJ-oiXvBLw5IjcXSBZ_ijimxkQEfNMUO4ECGY2fuc0SnKMAdFEhoKvklAzNKlFxw/usercallback';
+
+        // ===== STATE =====
+        let currentUser = null;
+        let currentSubmitType = null;
+        let currentSubmitData = null;
+        let rawMaterialRows = [];
+        let batchRows = [];
+        let dropdownData = {
+            ingredients: [],
+            products: [],
+            employees: []
+        };
+
+        // ===== INITIALIZATION =====
+        document.addEventListener('DOMContentLoaded', function() {
+            setTodayDate();
+            loadDropdownData();
+            setupLoginForm();
+        });
+
+        function setTodayDate() {
+            const today = new Date().toISOString().split('T')[0];
+            const dateFields = document.querySelectorAll('input[type="date"]');
+            dateFields.forEach(field => {
+                if (field.id === 'rmDate' || field.id === 'beDate') {
+                    field.value = today;
+                }
+            });
+        }
+
+        function setupLoginForm() {
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+        }
+
+        // ===== LOGIN =====
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const loginId = document.getElementById('loginId').value;
+            const loginPassword = document.getElementById('loginPassword').value;
+
+            try {
+                // Simulate authentication - in production, verify against Employees sheet
+                const mockEmployees = [
+                    { id: 'EMP001', name: 'John Doe', password: 'password123', role: 'Admin', company: 'AMAZON' },
+                    { id: 'EMP002', name: 'Jane Smith', password: 'password123', role: 'Staff', company: 'AMAZON' }
+                ];
+
+                const user = mockEmployees.find(emp => emp.id === loginId && emp.password === loginPassword);
+
+                if (user) {
+                    currentUser = user;
+                    loginSuccess();
+                } else {
+                    showLoginError('Invalid Employee ID or Password');
+                }
+            } catch (error) {
+                showLoginError('Login failed. Please try again.');
+                console.error('Login error:', error);
+            }
+        }
+
+        function loginSuccess() {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('mainContainer').classList.add('logged-in');
+            
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userRole').textContent = currentUser.role;
+            document.getElementById('userCompany').textContent = currentUser.company;
+
+            // Set pricing tab access based on role
+            const pricingTab = document.getElementById('pricingTab');
+            if (currentUser.role !== 'Admin') {
+                pricingTab.classList.add('disabled');
+            }
+
+            logActivity('LOGIN', 'User logged in');
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                logActivity('LOGOUT', 'User logged out');
+                currentUser = null;
+                document.getElementById('loginContainer').style.display = 'block';
+                document.getElementById('mainContainer').classList.remove('logged-in');
+                document.getElementById('loginForm').reset();
+            }
+        }
+
+        function showLoginError(message) {
+            const errorEl = document.getElementById('loginError');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+
+        // ===== TAB SWITCHING =====
+        function switchTab(event, tabName) {
+            event.preventDefault();
+            
+            // Check admin access for pricing tab
+            if (tabName === 'product-pricing' && currentUser.role !== 'Admin') {
+                alert('This tab is only available for Admin users.');
+                return;
+            }
+
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+
+            logActivity('TAB_SWITCH', `Switched to ${tabName}`);
+        }
+
+        // ===== DROPDOWN DATA =====
+        async function loadDropdownData() {
+            try {
+                // Mock data - in production, fetch from sheets
+                dropdownData.ingredients = [
+                    { id: 'ING001', name: 'cardamon' },
+                    { id: 'ING002', name: 'tulasi' },
+                    { id: 'ING003', name: 'turmaric' },
+                    { id: 'ING004', name: 'cloves' },
+                    { id: 'ING005', name: 'graipfruit' },
+                    { id: 'ING006', name: 'lemonpeel' }
+                ];
+
+                dropdownData.products = [
+                    { id: 'PRD001', name: 'SOURSOUP' },
+                    { id: 'PRD002', name: 'african black' },
+                    { id: 'PRD003', name: 'lavender' }
+                ];
+
+                dropdownData.employees = [
+                    { id: 'EMP001', name: 'John Doe' },
+                    { id: 'EMP002', name: 'Jane Smith' },
+                    { id: 'EMP003', name: 'IZZY' }
+                ];
+
+                setupDropdownListeners();
+            } catch (error) {
+                console.error('Error loading dropdown data:', error);
+            }
+        }
+
+        function setupDropdownListeners() {
+            // Raw Material Ingredient
+            setupSearchDropdown('rmIngredient', 'rmIngredientDropdown', dropdownData.ingredients);
+            
+            // Batch Prepared By
+            setupSearchDropdown('bePreparedBy', 'bePreparedByDropdown', dropdownData.employees);
+            
+            // Batch Product Name
+            setupSearchDropdown('beProductName', 'beProductNameDropdown', dropdownData.products);
+            
+            // Batch Ingredient
+            setupSearchDropdown('beIngredient', 'beIngredientDropdown', dropdownData.ingredients);
+        }
+
+        function setupSearchDropdown(inputId, dropdownId, dataArray) {
+            const inputEl = document.getElementById(inputId);
+            const dropdownEl = document.getElementById(dropdownId);
+
+            inputEl.addEventListener('focus', function() {
+                showDropdown(dropdownId, inputEl.value, dataArray);
+            });
+
+            inputEl.addEventListener('input', function() {
+                showDropdown(dropdownId, this.value, dataArray);
+            });
+
+            inputEl.addEventListener('blur', function() {
+                setTimeout(() => {
+                    dropdownEl.classList.remove('show');
+                }, 200);
+            });
+        }
+
+        function showDropdown(dropdownId, searchValue, dataArray) {
+            const dropdownEl = document.getElementById(dropdownId);
+            const filtered = dataArray.filter(item => 
+                item.name.toLowerCase().includes(searchValue.toLowerCase())
+            );
+
+            let html = '';
+            filtered.forEach(item => {
+                html += `
+                    <div class="dropdown-item" onclick="selectDropdownItem('${item.name}', '${dropdownId.replace('Dropdown', '')}')">
+                        ${item.name}
+                    </div>
+                `;
+            });
+
+            if (filtered.length === 0) {
+                html = '<div class="dropdown-item" style="cursor: default; color: #999;">No results found</div>';
+            }
+
+            dropdownEl.innerHTML = html;
+            dropdownEl.classList.add('show');
+        }
+
+        function selectDropdownItem(value, inputId) {
+            document.getElementById(inputId).value = value;
+            document.getElementById(inputId + 'Dropdown').classList.remove('show');
+            
+            // Clear error if exists
+            const errorEl = document.getElementById(inputId + 'Error');
+            if (errorEl) {
+                errorEl.style.display = 'none';
+            }
+        }
+
+        // ===== RAW MATERIAL =====
+        function addRawMaterialRow() {
+            const ingredient = document.getElementById('rmIngredient').value.trim();
+            const weight = parseFloat(document.getElementById('rmWeight').value);
+            const price = parseFloat(document.getElementById('rmPrice').value);
+
+            // Validation
+            if (!ingredient) {
+                showError('rmIngredientError', 'Please select an ingredient');
+                return;
+            }
+            if (!weight || weight <= 0) {
+                showError('rmWeightError', 'Please enter valid weight');
+                return;
+            }
+            if (!price || price <= 0) {
+                showError('rmPriceError', 'Please enter valid price');
+                return;
+            }
+
+            const pricePerOz = price / weight;
+
+            rawMaterialRows.push({
+                ingredient,
+                weight,
+                price,
+                pricePerOz: parseFloat(pricePerOz.toFixed(8))
+            });
+
+            // Clear inputs
+            document.getElementById('rmIngredient').value = '';
+            document.getElementById('rmWeight').value = '';
+            document.getElementById('rmPrice').value = '';
+            clearErrors(['rmIngredientError', 'rmWeightError', 'rmPriceError']);
+
+            updateRawMaterialList();
+        }
+
+        function removeRawMaterialRow(index) {
+            rawMaterialRows.splice(index, 1);
+            updateRawMaterialList();
+        }
+
+        function updateRawMaterialList() {
+            const listEl = document.getElementById('rmIngredientsList');
+            
+            if (rawMaterialRows.length === 0) {
+                listEl.innerHTML = '<p style="color: #999; text-align: center;">No ingredients added yet</p>';
+                return;
+            }
+
+            let html = '<h4 style="color: #333; margin-bottom: 15px;">Added Ingredients:</h4>';
+            rawMaterialRows.forEach((row, index) => {
+                html += `
+                    <div class="dynamic-row">
+                        <strong>${row.ingredient}</strong><br>
+                        Weight: ${row.weight} oz | Price: $${row.price.toFixed(2)} | Price/oz: $${row.pricePerOz.toFixed(8)}
+                        <div class="row-actions">
+                            <button type="button" class="btn btn-remove" onclick="removeRawMaterialRow(${index})">
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            listEl.innerHTML = html;
+        }
+
+        function submitRawMaterial() {
+            const date = document.getElementById('rmDate').value;
+            const poNumber = document.getElementById('rmPoNumber').value.trim();
+            const companyName = document.getElementById('rmCompanyName').value.trim();
+
+            if (!date || !poNumber || !companyName) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            if (rawMaterialRows.length === 0) {
+                alert('Please add at least one ingredient');
+                return;
+            }
+
+            currentSubmitData = {
+                type: 'rawMaterial',
+                date,
+                poNumber,
+                companyName,
+                ingredients: rawMaterialRows
+            };
+
+            currentSubmitType = 'rawMaterial';
+            showConfirmationModal();
+        }
+
+        // ===== BATCH ENTRY =====
+        function generateBatchId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let id = '';
+            for (let i = 0; i < 6; i++) {
+                id += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return id;
+        }
+
+        document.getElementById('beDate')?.addEventListener('change', function() {
+            const batchId = generateBatchId();
+            document.getElementById('beBatchId').value = batchId;
+        });
+
+        function addBatchRow() {
+            const productName = document.getElementById('beProductName').value.trim();
+            const ingredient = document.getElementById('beIngredient').value.trim();
+            const weight = parseFloat(document.getElementById('beWeight').value);
+
+            // Validation
+            if (!productName) {
+                showError('beProductNameError', 'Please select a product');
+                return;
+            }
+            if (!ingredient) {
+                showError('beIngredientError', 'Please select an ingredient');
+                return;
+            }
+            if (!weight || weight <= 0) {
+                showError('beWeightError', 'Please enter valid weight');
+                return;
+            }
+
+            // Calculate price from latest raw material entry
+            const price = calculateIngredientPrice(ingredient, weight);
+
+            batchRows.push({
+                productName,
+                ingredient,
+                weight,
+                price: parseFloat(price.toFixed(2))
+            });
+
+            // Clear inputs
+            document.getElementById('beProductName').value = '';
+            document.getElementById('beIngredient').value = '';
+            document.getElementById('beWeight').value = '';
+            document.getElementById('bePrice').value = '';
+            clearErrors(['beProductNameError', 'beIngredientError', 'beWeightError']);
+
+            updateBatchList();
+        }
+
+        function calculateIngredientPrice(ingredient, weight) {
+            // Find latest price for this ingredient from rawMaterialRows
+            const ingredientData = rawMaterialRows.find(row => 
+                row.ingredient.toLowerCase() === ingredient.toLowerCase()
+            );
+
+            if (ingredientData) {
+                return weight * ingredientData.pricePerOz;
+            }
+
+            // Mock fallback prices
+            const mockPrices = {
+                'cardamon': 1,
+                'tulasi': 0.75,
+                'turmaric': 0.08571428571,
+                'cloves': 28.33333333,
+                'graipfruit': 1,
+                'lemonpeel': 1.48
+            };
+
+            const pricePerOz = mockPrices[ingredient.toLowerCase()] || 1;
+            return weight * pricePerOz;
+        }
+
+        function removeBatchRow(index) {
+            batchRows.splice(index, 1);
+            updateBatchList();
+        }
+
+        function updateBatchList() {
+            const listEl = document.getElementById('beBatchItemsList');
+            
+            if (batchRows.length === 0) {
+                listEl.innerHTML = '<p style="color: #999; text-align: center;">No items added yet</p>';
+                return;
+            }
+
+            let html = '<h4 style="color: #333; margin-bottom: 15px;">Added Items:</h4>';
+            let totalPrice = 0;
+
+            batchRows.forEach((row, index) => {
+                totalPrice += row.price;
+                html += `
+                    <div class="dynamic-row">
+                        <strong>${row.productName}</strong> - ${row.ingredient}<br>
+                        Weight: ${row.weight} oz | Price: $${row.price.toFixed(2)}
+                        <div class="row-actions">
+                            <button type="button" class="btn btn-remove" onclick="removeBatchRow(${index})">
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `<div style="margin-top: 15px; padding: 10px; background: #e3f2fd; border-radius: 6px;">
+                <strong>Total Price: $${totalPrice.toFixed(2)}</strong>
+            </div>`;
+
+            listEl.innerHTML = html;
+        }
+
+        function submitBatch() {
+            const date = document.getElementById('beDate').value;
+            const batchId = document.getElementById('beBatchId').value;
+            const preparedBy = document.getElementById('bePreparedBy').value.trim();
+
+            if (!date || !batchId || !preparedBy) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            if (batchRows.length === 0) {
+                alert('Please add at least one item');
+                return;
+            }
+
+            currentSubmitData = {
+                type: 'batch',
+                date,
+                batchId,
+                preparedBy,
+                companyName: currentUser.company,
+                items: batchRows
+            };
+
+            currentSubmitType = 'batch';
+            showConfirmationModal();
+        }
+
+        // ===== CONFIRMATION =====
+        function showConfirmationModal() {
+            const listEl = document.getElementById('confirmationList');
+            let html = '';
+
+            if (currentSubmitType === 'rawMaterial') {
+                html += `<div class="confirmation-item">
+                    <strong>Date:</strong> ${currentSubmitData.date}
+                </div>`;
+                html += `<div class="confirmation-item">
+                    <strong>PO Number:</strong> ${currentSubmitData.poNumber}
+                </div>`;
+                html += `<div class="confirmation-item">
+                    <strong>Company:</strong> ${currentSubmitData.companyName}
+                </div>`;
+                html += `<div class="confirmation-item" style="margin-top: 15px; font-weight: 600;">
+                    Ingredients (${currentSubmitData.ingredients.length}):
+                </div>`;
+                
+                currentSubmitData.ingredients.forEach(ing => {
+                    html += `<div class="confirmation-item" style="margin-left: 15px;">
+                        ${ing.ingredient}: ${ing.weight} oz @ $${ing.price.toFixed(2)} (Price/oz: $${ing.pricePerOz.toFixed(8)})
+                    </div>`;
+                });
+            } else if (currentSubmitType === 'batch') {
+                html += `<div class="confirmation-item">
+                    <strong>Date:</strong> ${currentSubmitData.date}
+                </div>`;
+                html += `<div class="confirmation-item">
+                    <strong>Batch ID:</strong> ${currentSubmitData.batchId}
+                </div>`;
+                html += `<div class="confirmation-item">
+                    <strong>Prepared By:</strong> ${currentSubmitData.preparedBy}
+                </div>`;
+                html += `<div class="confirmation-item">
+                    <strong>Company:</strong> ${currentSubmitData.companyName}
+                </div>`;
+                html += `<div class="confirmation-item" style="margin-top: 15px; font-weight: 600;">
+                    Items (${currentSubmitData.items.length}):
+                </div>`;
+
+                let totalPrice = 0;
+                currentSubmitData.items.forEach(item => {
+                    totalPrice += item.price;
+                    html += `<div class="confirmation-item" style="margin-left: 15px;">
+                        ${item.productName} - ${item.ingredient}: ${item.weight} oz = $${item.price.toFixed(2)}
+                    </div>`;
+                });
+
+                html += `<div class="confirmation-item" style="margin-top: 15px; font-weight: 600; color: #667eea;">
+                    Total: $${totalPrice.toFixed(2)}
+                </div>`;
+            }
+
+            listEl.innerHTML = html;
+            document.getElementById('confirmationModal').classList.add('show');
+        }
+
+        function confirmSubmission() {
+            saveToGoogleSheets(currentSubmitData);
+        }
+
+        function cancelSubmission() {
+            document.getElementById('confirmationModal').classList.remove('show');
+        }
+
+        async function saveToGoogleSheets(data) {
+            try {
+                // Mock save - in production, call Google Apps Script
+                console.log('Saving to Google Sheets:', data);
+
+                if (data.type === 'rawMaterial') {
+                    logActivity('RAW_MATERIAL_SUBMIT', `Submitted ${data.ingredients.length} ingredients with PO ${data.poNumber}`);
+                    alert('Raw material data saved successfully!');
+                    document.getElementById('rawMaterialForm').reset();
+                    rawMaterialRows = [];
+                    updateRawMaterialList();
+                } else if (data.type === 'batch') {
+                    logActivity('BATCH_SUBMIT', `Submitted batch ${data.batchId} with ${data.items.length} items`);
+                    alert('Batch data saved successfully!');
+                    document.getElementById('batchForm').reset();
+                    batchRows = [];
+                    updateBatchList();
+                }
+
+                document.getElementById('confirmationModal').classList.remove('show');
+            } catch (error) {
+                alert('Error saving data: ' + error.message);
+                console.error('Save error:', error);
+            }
+        }
+
+        // ===== PRODUCT PRICING =====
+        function searchPricingData() {
+            // Mock implementation
+            const productName = document.getElementById('searchProductName').value;
+            const batchId = document.getElementById('searchBatchId').value;
+            const fromDate = document.getElementById('searchFromDate').value;
+            const toDate = document.getElementById('searchToDate').value;
+
+            // Mock data
+            const mockData = [
+                { batchId: 'JIMMY', date: '07/05', productName: 'SOURSOUP', price: 45.50 },
+                { batchId: 'JIMMY', date: '07/05', productName: 'african black', price: 52.75 }
+            ];
+
+            let filtered = mockData;
+
+            if (productName) {
+                filtered = filtered.filter(row => 
+                    row.productName.toLowerCase().includes(productName.toLowerCase())
+                );
+            }
+
+            if (batchId) {
+                filtered = filtered.filter(row => 
+                    row.batchId.toLowerCase().includes(batchId.toLowerCase())
+                );
+            }
+
+            displayPricingResults(filtered);
+            logActivity('PRICING_SEARCH', `Searched pricing data`);
+        }
+
+        function resetPricingSearch() {
+            document.getElementById('searchProductName').value = '';
+            document.getElementById('searchBatchId').value = '';
+            document.getElementById('searchFromDate').value = '';
+            document.getElementById('searchToDate').value = '';
+            
+            const tbody = document.getElementById('pricingTableBody');
+            tbody.innerHTML = `<tr>
+                <td colspan="5" style="text-align: center; color: #999;">
+                    Load data or search to view results
+                </td>
+            </tr>`;
+        }
+
+        function displayPricingResults(data) {
+            const tbody = document.getElementById('pricingTableBody');
+            
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr>
+                    <td colspan="5" style="text-align: center; color: #999;">
+                        No results found
+                    </td>
+                </tr>`;
+                return;
+            }
+
+            let html = '';
+            data.forEach(row => {
+                html += `<tr>
+                    <td>${row.batchId}</td>
+                    <td>${row.date}</td>
+                    <td>${row.productName}</td>
+                    <td>$${row.price.toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-small" onclick="viewPricingDetails('${row.batchId}')">
+                            View
+                        </button>
+                    </td>
+                </tr>`;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function viewPricingDetails(batchId) {
+            alert('Viewing details for batch: ' + batchId);
+            logActivity('PRICING_VIEW', `Viewed details for batch ${batchId}`);
+        }
+
+        // ===== UTILITIES =====
+        function showError(elementId, message) {
+            const errorEl = document.getElementById(elementId);
+            if (errorEl) {
+                errorEl.textContent = message;
+                errorEl.style.display = 'block';
+            }
+        }
+
+        function clearErrors(errorIds) {
+            errorIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.style.display = 'none';
+                }
+            });
+        }
+
+        function logActivity(action, details) {
+            if (!currentUser) return;
+
+            const log = {
+                timestamp: new Date().toLocaleString(),
+                userId: currentUser.id,
+                userName: currentUser.name,
+                action: action,
+                details: details
+            };
+
+            console.log('Activity Log:', log);
+            // In production, save to Google Sheets logs
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('confirmationModal');
+            if (event.target === modal) {
+                modal.classList.remove('show');
+            }
+        }
+    </script>
+</body>
+</html>
