@@ -383,6 +383,7 @@
             gap: 10px;
             justify-content: center;
             margin-top: 20px;
+            z-index: 1001;
         }
 
         .btn-confirm {
@@ -393,15 +394,26 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
+            font-size: 1em;
+            transition: all 0.3s;
+            min-width: 120px;
+            position: relative;
+            z-index: 1001;
         }
 
-        .btn-confirm:hover {
+        .btn-confirm:hover:not(:disabled) {
             background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
         }
 
         .btn-confirm:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+        }
+
+        .btn-confirm:active:not(:disabled) {
+            transform: translateY(0);
         }
 
         .btn-cancel {
@@ -412,10 +424,26 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
+            font-size: 1em;
+            transition: all 0.3s;
+            min-width: 120px;
+            position: relative;
+            z-index: 1001;
         }
 
-        .btn-cancel:hover {
+        .btn-cancel:hover:not(:disabled) {
             background: #da190b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+        }
+
+        .btn-cancel:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-cancel:active:not(:disabled) {
+            transform: translateY(0);
         }
 
         .info-box {
@@ -561,6 +589,38 @@
             font-style: italic;
         }
 
+        /* NEW STYLES FOR FORM IMPROVEMENTS */
+        .form-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .form-section-header h3 {
+            color: #667eea;
+            font-size: 1.1em;
+            margin: 0;
+        }
+
+        .form-section-header .btn-add {
+            margin-top: 0;
+            margin-left: auto;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group .dropdown-list {
+            max-height: 150px;
+        }
+
+        /* Hide price fields in batch entry form */
+        .price-field-hidden {
+            display: none !important;
+        }
+
         @media (max-width: 768px) {
             .header {
                 flex-direction: column;
@@ -588,6 +648,17 @@
             .search-box input,
             .search-box select {
                 min-width: unset;
+            }
+
+            .form-section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .form-section-header .btn-add {
+                margin-left: 0;
+                width: 100%;
             }
         }
     </style>
@@ -682,30 +753,42 @@
                     </div>
 
                     <!-- Dynamic Ingredients Section -->
-                    <h3 style="color: #667eea; margin-top: 25px; margin-bottom: 15px;">Add Ingredients</h3>
+                    <div class="form-section-header">
+                        <h3>Add Ingredients</h3>
+                        <button type="button" class="btn btn-add" onclick="toggleRawMaterialForm()">
+                            + Add Ingredient
+                        </button>
+                    </div>
                     
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="rmIngredient">Ingredient <span class="required">*</span></label>
-                            <input type="text" id="rmIngredient" placeholder="Search ingredient..." autocomplete="off">
-                            <div class="dropdown-list" id="rmIngredientDropdown"></div>
-                            <div class="error-message" id="rmIngredientError"></div>
-                        </div>
-                        <div class="form-group">
-                            <label for="rmWeight">Weight (oz) <span class="required">*</span></label>
-                            <input type="number" id="rmWeight" placeholder="Enter weight" step="0.01" min="0">
-                            <div class="error-message" id="rmWeightError"></div>
-                        </div>
-                        <div class="form-group">
-                            <label for="rmPrice">Price ($) <span class="required">*</span></label>
-                            <input type="number" id="rmPrice" placeholder="Enter total price" step="0.01" min="0">
-                            <div class="error-message" id="rmPriceError"></div>
+                    <!-- Hidden by default, shows on button click -->
+                    <div id="rmInputForm" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group input-group">
+                                <label for="rmIngredient">Ingredient <span class="required">*</span></label>
+                                <input type="text" id="rmIngredient" placeholder="Search ingredient..." autocomplete="off">
+                                <div class="dropdown-list" id="rmIngredientDropdown"></div>
+                                <div class="error-message" id="rmIngredientError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="rmWeight">Weight (oz) <span class="required">*</span></label>
+                                <input type="number" id="rmWeight" placeholder="Enter weight" step="0.01" min="0">
+                                <div class="error-message" id="rmWeightError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="rmPrice">Price ($) <span class="required">*</span></label>
+                                <input type="number" id="rmPrice" placeholder="Enter total price" step="0.01" min="0">
+                                <div class="error-message" id="rmPriceError"></div>
+                            </div>
+                            <div class="form-group" style="display: flex; align-items: flex-end; gap: 8px; min-width: auto;">
+                                <button type="button" class="btn btn-small" style="background: #4caf50; color: white; padding: 8px 12px; margin: 0;" onclick="addRawMaterialRow()">
+                                    ✓ Add
+                                </button>
+                                <button type="button" class="btn btn-small" style="background: #f44336; color: white; padding: 8px 12px; margin: 0;" onclick="toggleRawMaterialForm()">
+                                    ✕ Cancel
+                                </button>
+                            </div>
                         </div>
                     </div>
-
-                    <button type="button" class="btn btn-add" onclick="addRawMaterialRow()">
-                        + Add Ingredient
-                    </button>
 
                     <!-- Added Ingredients List -->
                     <div id="rmIngredientsList" style="margin-top: 20px;"></div>
@@ -741,7 +824,7 @@
                             <input type="text" id="beBatchId" placeholder="Auto-generated" readonly class="calculated-field">
                             <div class="field-info">Auto-generated ID</div>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group input-group">
                             <label for="bePreparedBy">Prepared By <span class="required">*</span></label>
                             <input type="text" id="bePreparedBy" placeholder="Search employee..." autocomplete="off">
                             <div class="dropdown-list" id="bePreparedByDropdown"></div>
@@ -749,37 +832,48 @@
                         </div>
                     </div>
 
-                    <!-- Dynamic Batch Items Section -->
-                    <h3 style="color: #667eea; margin-top: 25px; margin-bottom: 15px;">Batch Items</h3>
-                    
+                    <!-- Product Name Section -->
                     <div class="form-row">
-                        <div class="form-group">
+                        <div class="form-group input-group">
                             <label for="beProductName">Product Name <span class="required">*</span></label>
                             <input type="text" id="beProductName" placeholder="Search product..." autocomplete="off">
                             <div class="dropdown-list" id="beProductNameDropdown"></div>
                             <div class="error-message" id="beProductNameError"></div>
                         </div>
-                        <div class="form-group">
-                            <label for="beIngredient">Ingredient <span class="required">*</span></label>
-                            <input type="text" id="beIngredient" placeholder="Search ingredient..." autocomplete="off">
-                            <div class="dropdown-list" id="beIngredientDropdown"></div>
-                            <div class="error-message" id="beIngredientError"></div>
-                        </div>
-                        <div class="form-group">
-                            <label for="beWeight">Weight (oz) <span class="required">*</span></label>
-                            <input type="number" id="beWeight" placeholder="Enter weight" step="0.01" min="0">
-                            <div class="error-message" id="beWeightError"></div>
-                        </div>
-                        <div class="form-group">
-                            <label for="bePrice">Price ($)</label>
-                            <input type="number" id="bePrice" placeholder="Auto-calculated" readonly class="calculated-field" step="0.01">
-                            <div class="field-info">Auto-calculated from raw materials</div>
-                        </div>
                     </div>
 
-                    <button type="button" class="btn btn-add" onclick="addBatchRow()">
-                        + Add Item
-                    </button>
+                    <!-- Dynamic Batch Items Section -->
+                    <div class="form-section-header">
+                        <h3>Add Ingredients to Batch</h3>
+                        <button type="button" class="btn btn-add" onclick="toggleBatchForm()">
+                            + Add Ingredient
+                        </button>
+                    </div>
+                    
+                    <!-- Hidden by default, shows on button click -->
+                    <div id="beInputForm" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group input-group">
+                                <label for="beIngredient">Ingredient <span class="required">*</span></label>
+                                <input type="text" id="beIngredient" placeholder="Search ingredient..." autocomplete="off">
+                                <div class="dropdown-list" id="beIngredientDropdown"></div>
+                                <div class="error-message" id="beIngredientError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="beWeight">Weight (oz) <span class="required">*</span></label>
+                                <input type="number" id="beWeight" placeholder="Enter weight" step="0.01" min="0">
+                                <div class="error-message" id="beWeightError"></div>
+                            </div>
+                            <div class="form-group" style="display: flex; align-items: flex-end; gap: 8px; min-width: auto;">
+                                <button type="button" class="btn btn-small" style="background: #4caf50; color: white; padding: 8px 12px; margin: 0;" onclick="addBatchRow()">
+                                    ✓ Add
+                                </button>
+                                <button type="button" class="btn btn-small" style="background: #f44336; color: white; padding: 8px 12px; margin: 0;" onclick="toggleBatchForm()">
+                                    ✕ Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Added Batch Items List -->
                     <div id="beBatchItemsList" style="margin-top: 20px;"></div>
@@ -789,7 +883,7 @@
                         <button type="button" class="btn btn-primary" onclick="submitBatch()" style="flex: 1;" id="submitBatchBtn">
                             Proceed
                         </button>
-                        <button type="reset" class="btn btn-secondary" style="flex: 1;">Clear Form</button>
+                        <button type="reset" class="btn btn-secondary" style="flex: 1;" onclick="onBatchFormReset()">Clear Form</button>
                     </div>
                 </form>
             </div>
@@ -812,9 +906,6 @@
                     <button class="btn btn-primary" onclick="searchPricingData()" style="width: auto; padding: 12px 30px;" id="searchPricingBtn">
                         Search
                     </button>
-                    <button class="btn btn-secondary" onclick="resetPricingSearch()" style="width: auto; padding: 12px 30px;">
-                        Reset
-                    </button>
                 </div>
 
                 <!-- Results Table -->
@@ -826,13 +917,12 @@
                                 <th>Date</th>
                                 <th>Product Name</th>
                                 <th>Total Price ($)</th>
-                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="pricingTableBody">
                             <tr>
-                                <td colspan="5" style="text-align: center; color: #999;">
-                                    Load data or search to view results
+                                <td colspan="4" style="text-align: center; color: #999;">
+                                    Navigate to this tab to load pricing data
                                 </td>
                             </tr>
                         </tbody>
@@ -918,6 +1008,7 @@
         // ===== INITIALIZATION =====
         document.addEventListener('DOMContentLoaded', function() {
             setTodayDate();
+            initializeBatchId();
             loadDropdownData();
             setupLoginForm();
             testAPIConnection();
@@ -1056,6 +1147,15 @@
             event.currentTarget.classList.add('active');
 
             logActivity('TAB_SWITCH', `Switched to ${tabName}`);
+
+            // Auto-load pricing data when switching to pricing tab
+            if (tabName === 'product-pricing') {
+                console.log('Loading pricing data...');
+                // Small delay to ensure DOM is ready
+                setTimeout(() => {
+                    loadAllPricingData();
+                }, 100);
+            }
         }
 
         // ===== DROPDOWN DATA =====
@@ -1183,6 +1283,24 @@
         }
 
         // ===== RAW MATERIAL =====
+        function toggleRawMaterialForm() {
+            const form = document.getElementById('rmInputForm');
+            if (form.style.display === 'none') {
+                form.style.display = 'block';
+                // Focus on ingredient field
+                setTimeout(() => {
+                    document.getElementById('rmIngredient').focus();
+                }, 0);
+            } else {
+                form.style.display = 'none';
+                // Clear inputs
+                document.getElementById('rmIngredient').value = '';
+                document.getElementById('rmWeight').value = '';
+                document.getElementById('rmPrice').value = '';
+                clearErrors(['rmIngredientError', 'rmWeightError', 'rmPriceError']);
+            }
+        }
+
         function addRawMaterialRow() {
             const ingredient = document.getElementById('rmIngredient').value.trim();
             const weight = parseFloat(document.getElementById('rmWeight').value);
@@ -1216,6 +1334,9 @@
             document.getElementById('rmWeight').value = '';
             document.getElementById('rmPrice').value = '';
             clearErrors(['rmIngredientError', 'rmWeightError', 'rmPriceError']);
+
+            // Hide the form after adding
+            document.getElementById('rmInputForm').style.display = 'none';
 
             updateRawMaterialList();
         }
@@ -1256,16 +1377,31 @@
             const poNumber = document.getElementById('rmPoNumber').value.trim();
             const companyName = document.getElementById('rmCompanyName').value.trim();
 
-            if (!date || !poNumber || !companyName) {
-                alert('Please fill in all required fields');
+            // Validation - check base fields
+            if (!date) {
+                alert('❌ Please select a date');
+                document.getElementById('rmDate').focus();
+                return;
+            }
+
+            if (!poNumber) {
+                alert('❌ Please enter a PO Number');
+                document.getElementById('rmPoNumber').focus();
+                return;
+            }
+
+            if (!companyName) {
+                alert('❌ Please enter a Company Name');
+                document.getElementById('rmCompanyName').focus();
                 return;
             }
 
             if (rawMaterialRows.length === 0) {
-                alert('Please add at least one ingredient');
+                alert('❌ Please add at least one ingredient');
                 return;
             }
 
+            // All validations passed
             currentSubmitData = {
                 type: 'rawMaterial',
                 date,
@@ -1278,20 +1414,103 @@
             showConfirmationModal();
         }
 
-        // ===== BATCH ENTRY =====
-        function generateBatchId() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let id = '';
-            for (let i = 0; i < 6; i++) {
-                id += chars.charAt(Math.floor(Math.random() * chars.length));
+        function submitBatch() {
+            const date = document.getElementById('beDate').value;
+            const batchId = document.getElementById('beBatchId').value;
+            const preparedBy = document.getElementById('bePreparedBy').value.trim();
+            const productName = document.getElementById('beProductName').value.trim();
+
+            // Validation - check all required fields
+            if (!date) {
+                alert('❌ Please select a date of production');
+                document.getElementById('beDate').focus();
+                return;
             }
-            return id;
+
+            if (!batchId) {
+                alert('❌ Batch ID is missing. Please refresh and try again');
+                return;
+            }
+
+            if (!preparedBy) {
+                alert('❌ Please enter who prepared the batch');
+                document.getElementById('bePreparedBy').focus();
+                return;
+            }
+
+            if (!productName) {
+                alert('❌ Please select a product name');
+                document.getElementById('beProductName').focus();
+                return;
+            }
+
+            if (batchRows.length === 0) {
+                alert('❌ Please add at least one ingredient to the batch');
+                return;
+            }
+
+            // All validations passed
+            currentSubmitData = {
+                type: 'batch',
+                date,
+                batchId,
+                preparedBy,
+                productName,
+                companyName: currentUser.company,
+                items: batchRows
+            };
+
+            currentSubmitType = 'batch';
+            showConfirmationModal();
+        }
+
+        // ===== BATCH ENTRY HELPER FUNCTIONS =====
+        function generateBatchId() {
+            // Pattern: BATCH-YYYYMMDD-XXXXX (e.g., BATCH-20260507-A7K9M)
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const dateStr = `${year}${month}${day}`;
+            
+            // Generate random suffix (5 characters)
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let randomSuffix = '';
+            for (let i = 0; i < 5; i++) {
+                randomSuffix += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            
+            return `BATCH-${dateStr}-${randomSuffix}`;
+        }
+
+        function initializeBatchId() {
+            const batchIdField = document.getElementById('beBatchId');
+            if (batchIdField && !batchIdField.value) {
+                batchIdField.value = generateBatchId();
+            }
         }
 
         document.getElementById('beDate')?.addEventListener('change', function() {
             const batchId = generateBatchId();
             document.getElementById('beBatchId').value = batchId;
         });
+
+        function toggleBatchForm() {
+            const form = document.getElementById('beInputForm');
+            if (form.style.display === 'none') {
+                form.style.display = 'block';
+                // Focus on ingredient field
+                setTimeout(() => {
+                    document.getElementById('beIngredient').focus();
+                }, 0);
+            } else {
+                form.style.display = 'none';
+                // Clear inputs
+                document.getElementById('beIngredient').value = '';
+                document.getElementById('beWeight').value = '';
+                clearErrors(['beIngredientError', 'beWeightError']);
+            }
+        }
 
         function addBatchRow() {
             const productName = document.getElementById('beProductName').value.trim();
@@ -1322,12 +1541,13 @@
                 price: parseFloat(price.toFixed(2))
             });
 
-            // Clear inputs
-            document.getElementById('beProductName').value = '';
+            // Clear only ingredient inputs (keep product name)
             document.getElementById('beIngredient').value = '';
             document.getElementById('beWeight').value = '';
-            document.getElementById('bePrice').value = '';
-            clearErrors(['beProductNameError', 'beIngredientError', 'beWeightError']);
+            clearErrors(['beIngredientError', 'beWeightError']);
+
+            // Hide the form after adding
+            document.getElementById('beInputForm').style.display = 'none';
 
             updateBatchList();
         }
@@ -1370,14 +1590,12 @@
             }
 
             let html = '<h4 style="color: #333; margin-bottom: 15px;">Added Items:</h4>';
-            let totalPrice = 0;
 
             batchRows.forEach((row, index) => {
-                totalPrice += row.price;
                 html += `
                     <div class="dynamic-row">
                         <strong>${row.productName}</strong> - ${row.ingredient}<br>
-                        Weight: ${row.weight} oz | Price: $${row.price.toFixed(2)}
+                        Weight: ${row.weight} oz
                         <div class="row-actions">
                             <button type="button" class="btn btn-remove" onclick="removeBatchRow(${index})">
                                 Remove
@@ -1387,42 +1605,16 @@
                 `;
             });
 
-            html += `<div style="margin-top: 15px; padding: 10px; background: #e3f2fd; border-radius: 6px;">
-                <strong>Total Price: $${totalPrice.toFixed(2)}</strong>
-            </div>`;
-
             listEl.innerHTML = html;
         }
 
-        function submitBatch() {
-            const date = document.getElementById('beDate').value;
-            const batchId = document.getElementById('beBatchId').value;
-            const preparedBy = document.getElementById('bePreparedBy').value.trim();
-
-            if (!date || !batchId || !preparedBy) {
-                alert('Please fill in all required fields');
-                return;
-            }
-
-            if (batchRows.length === 0) {
-                alert('Please add at least one item');
-                return;
-            }
-
-            currentSubmitData = {
-                type: 'batch',
-                date,
-                batchId,
-                preparedBy,
-                companyName: currentUser.company,
-                items: batchRows
-            };
-
-            currentSubmitType = 'batch';
-            showConfirmationModal();
+        function onBatchFormReset() {
+            batchRows = [];
+            updateBatchList();
+            setTimeout(() => {
+                initializeBatchId();
+            }, 0);
         }
-
-        // ===== CONFIRMATION =====
         function showConfirmationModal() {
             const listEl = document.getElementById('confirmationList');
             let html = '';
@@ -1463,17 +1655,11 @@
                     Items (${currentSubmitData.items.length}):
                 </div>`;
 
-                let totalPrice = 0;
                 currentSubmitData.items.forEach(item => {
-                    totalPrice += item.price;
                     html += `<div class="confirmation-item" style="margin-left: 15px;">
-                        ${item.productName} - ${item.ingredient}: ${item.weight} oz = $${item.price.toFixed(2)}
+                        ${item.productName} - ${item.ingredient}: ${item.weight} oz
                     </div>`;
                 });
-
-                html += `<div class="confirmation-item" style="margin-top: 15px; font-weight: 600; color: #667eea;">
-                    Total: $${totalPrice.toFixed(2)}
-                </div>`;
             }
 
             listEl.innerHTML = html;
@@ -1481,11 +1667,54 @@
         }
 
         function confirmSubmission() {
+            const confirmBtn = document.getElementById('confirmBtn');
+            
+            // Prevent multiple submissions
+            if (confirmBtn && confirmBtn.disabled) {
+                console.log('Submission already in progress');
+                return;
+            }
+            
+            // Validate submission data
+            if (!currentSubmitData) {
+                alert('Error: No submission data found');
+                return;
+            }
+            
+            if (!currentSubmitType) {
+                alert('Error: Submission type not set');
+                return;
+            }
+            
+            console.log('Confirming submission of type:', currentSubmitType);
             saveToGoogleSheets(currentSubmitData);
         }
 
         function cancelSubmission() {
-            document.getElementById('confirmationModal').classList.remove('show');
+            console.log('Cancelling submission...');
+            
+            const modal = document.getElementById('confirmationModal');
+            if (modal) {
+                modal.classList.remove('show');
+            }
+            
+            // Clear form based on type
+            if (currentSubmitType === 'batch') {
+                batchRows = [];
+                updateBatchList();
+                document.getElementById('batchForm').reset();
+                setTodayDate();
+                initializeBatchId();
+            } else if (currentSubmitType === 'rawMaterial') {
+                rawMaterialRows = [];
+                updateRawMaterialList();
+                document.getElementById('rawMaterialForm').reset();
+                setTodayDate();
+            }
+            
+            // Reset submission state
+            currentSubmitType = null;
+            currentSubmitData = null;
         }
 
         async function saveToGoogleSheets(data) {
@@ -1523,6 +1752,7 @@
                             updateRawMaterialList();
                             document.getElementById('confirmationModal').classList.remove('show');
                             submissionStatus.style.display = 'none';
+                            setTodayDate();
                         }, 1000);
                     } else {
                         throw new Error(result.error);
@@ -1552,6 +1782,7 @@
                             updateBatchList();
                             document.getElementById('confirmationModal').classList.remove('show');
                             submissionStatus.style.display = 'none';
+                            setTodayDate();
                         }, 1000);
                     } else {
                         throw new Error(result.error);
@@ -1571,6 +1802,46 @@
         }
 
         // ===== PRODUCT PRICING =====
+        async function loadAllPricingData() {
+            try {
+                const searchBtn = document.getElementById('searchPricingBtn');
+                const tbody = document.getElementById('pricingTableBody');
+
+                if (!searchBtn) return;
+
+                searchBtn.disabled = true;
+                searchBtn.innerHTML = '<span class="loading-spinner"></span>Loading...';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;"><span class="loading-spinner"></span> Loading pricing data...</td></tr>';
+
+                // Call API without filters to get all data
+                const result = await callGoogleAppsScript('getProductPricing', {
+                    productName: '',
+                    batchId: '',
+                    fromDate: '',
+                    toDate: '',
+                    userId: currentUser.id,
+                    userName: currentUser.name
+                });
+
+                if (result.success) {
+                    displayPricingResults(result.data || []);
+                    logActivity('PRICING_LOAD', `Auto-loaded all pricing data`);
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #c62828;">Error loading data: ${result.error}</td></tr>`;
+                }
+            } catch (error) {
+                console.error('Load error:', error);
+                const tbody = document.getElementById('pricingTableBody');
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #c62828;">Error: ${error.message}</td></tr>`;
+            } finally {
+                const searchBtn = document.getElementById('searchPricingBtn');
+                if (searchBtn) {
+                    searchBtn.disabled = false;
+                    searchBtn.innerHTML = 'Search';
+                }
+            }
+        }
+
         async function searchPricingData() {
             try {
                 const productName = document.getElementById('searchProductName').value;
@@ -1578,9 +1849,11 @@
                 const fromDate = document.getElementById('searchFromDate').value;
                 const toDate = document.getElementById('searchToDate').value;
                 const searchBtn = document.getElementById('searchPricingBtn');
+                const tbody = document.getElementById('pricingTableBody');
 
                 searchBtn.disabled = true;
                 searchBtn.innerHTML = '<span class="loading-spinner"></span>Searching...';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;"><span class="loading-spinner"></span> Searching...</td></tr>';
 
                 const result = await callGoogleAppsScript('getProductPricing', {
                     productName: productName,
@@ -1593,39 +1866,29 @@
 
                 if (result.success) {
                     displayPricingResults(result.data || []);
-                    logActivity('PRICING_SEARCH', `Searched pricing data`);
+                    logActivity('PRICING_SEARCH', `Searched pricing data with filters`);
                 } else {
-                    alert('Error: ' + result.error);
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #c62828;">Error: ${result.error}</td></tr>`;
                 }
             } catch (error) {
-                alert('Search failed: ' + error.message);
                 console.error('Search error:', error);
+                const tbody = document.getElementById('pricingTableBody');
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #c62828;">Search failed: ${error.message}</td></tr>`;
             } finally {
-                document.getElementById('searchPricingBtn').disabled = false;
-                document.getElementById('searchPricingBtn').innerHTML = 'Search';
+                const searchBtn = document.getElementById('searchPricingBtn');
+                if (searchBtn) {
+                    searchBtn.disabled = false;
+                    searchBtn.innerHTML = 'Search';
+                }
             }
-        }
-
-        function resetPricingSearch() {
-            document.getElementById('searchProductName').value = '';
-            document.getElementById('searchBatchId').value = '';
-            document.getElementById('searchFromDate').value = '';
-            document.getElementById('searchToDate').value = '';
-            
-            const tbody = document.getElementById('pricingTableBody');
-            tbody.innerHTML = `<tr>
-                <td colspan="5" style="text-align: center; color: #999;">
-                    Load data or search to view results
-                </td>
-            </tr>`;
         }
 
         function displayPricingResults(data) {
             const tbody = document.getElementById('pricingTableBody');
             
-            if (data.length === 0) {
+            if (!data || data.length === 0) {
                 tbody.innerHTML = `<tr>
-                    <td colspan="5" style="text-align: center; color: #999;">
+                    <td colspan="4" style="text-align: center; color: #999;">
                         No results found
                     </td>
                 </tr>`;
@@ -1634,25 +1897,40 @@
 
             let html = '';
             data.forEach(row => {
+                // Ensure values exist and are properly formatted
+                const batchId = row.batchId || 'N/A';
+                let batchDate = row.batchDate || 'N/A';
+                const productName = row.productName || 'N/A';
+                const totalPrice = parseFloat(row.totalPrice) || 0;
+                
+                // Format the date if it exists
+                if (batchDate !== 'N/A') {
+                    try {
+                        // Try to parse the date string
+                        const dateObj = new Date(batchDate);
+                        // Format as MM/DD/YYYY or YYYY-MM-DD depending on input
+                        if (!isNaN(dateObj.getTime())) {
+                            batchDate = dateObj.toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                            });
+                        }
+                    } catch (e) {
+                        // If parsing fails, keep original value
+                    }
+                }
+                
                 html += `<tr>
-                    <td>${row.batchId}</td>
-                    <td>${row.date}</td>
-                    <td>${row.productName}</td>
-                    <td>$${parseFloat(row.price).toFixed(2)}</td>
-                    <td>
-                        <button class="btn btn-small" onclick="viewPricingDetails('${row.batchId}')">
-                            View
-                        </button>
-                    </td>
+                    <td>${batchId}</td>
+                    <td>${batchDate}</td>
+                    <td>${productName}</td>
+                    <td>$${totalPrice.toFixed(2)}</td>
                 </tr>`;
             });
 
             tbody.innerHTML = html;
-        }
-
-        function viewPricingDetails(batchId) {
-            alert('Viewing details for batch: ' + batchId);
-            logActivity('PRICING_VIEW', `Viewed details for batch ${batchId}`);
         }
 
         // ===== UTILITIES =====
@@ -1686,13 +1964,24 @@
             });
         }
 
-        // Close modal on outside click
+        // Close modal on outside click (only if clicking directly on modal background)
         window.onclick = function(event) {
             const modal = document.getElementById('confirmationModal');
-            if (event.target === modal) {
-                modal.classList.remove('show');
+            if (modal && event.target === modal) {
+                // Only close if clicking on the background, not on modal content
+                cancelSubmission();
             }
         }
+        
+        // Prevent modal content clicks from closing the modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalContent = document.querySelector('.modal-content');
+            if (modalContent) {
+                modalContent.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                });
+            }
+        });
     </script>
 </body>
 </html>

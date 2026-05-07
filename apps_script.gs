@@ -1,7 +1,8 @@
 // Soap Manufacturing System - Google Apps Script Backend
-// Sheet ID: 1-twqY8w9hto179qrQ5nd0BSc8o85d13kVB5DyDaaKcM
+// WITH CORS SUPPORT FOR WEB APP DEPLOYMENT
+// Sheet ID: 1exwbP0rCF7TSngMJm5f_zbVoK39DFjwSejxu9pA7sMw
 
-const SHEET_ID = '1-twqY8w9hto179qrQ5nd0BSc8o85d13kVB5DyDaaKcM';
+const SHEET_ID = '1exwbP0rCF7TSngMJm5f_zbVoK39DFjwSejxu9pA7sMw';
 
 // Sheet names
 const SHEETS = {
@@ -12,6 +13,93 @@ const SHEETS = {
   BATCH_PROCESSED: 'BATCH PROCESSED',
   ACTIVITY_LOG: 'Activity Log'
 };
+
+/**
+ * MAIN HANDLER - Handles both GET and POST requests
+ * INCLUDES CORS HEADERS
+ */
+function doPost(e) {
+  try {
+    // Parse the request
+    const payload = JSON.parse(e.postData.contents);
+    const action = payload.action;
+
+    console.log('📥 Received action:', action);
+    console.log('📥 Payload:', payload);
+
+    let result;
+
+    // Route to appropriate function
+    switch(action) {
+      case 'test':
+        result = { success: true, message: 'API connection successful' };
+        break;
+
+      case 'authenticate':
+        result = authenticateEmployee(payload.employeeId, payload.password);
+        break;
+
+      case 'getDropdownData':
+        result = {
+          ingredients: getIngredients(),
+          products: getProducts(),
+          employees: getEmployees()
+        };
+        break;
+
+      case 'submitRawMaterial':
+        result = submitRawMaterial(payload);
+        break;
+
+      case 'submitBatch':
+        result = submitBatch(payload);
+        break;
+
+      case 'getProductPricing':
+        result = getProductPricing(payload);
+        break;
+
+      case 'logActivity':
+        logActivity(payload.userId, payload.userName, payload.action, payload.details);
+        result = { success: true };
+        break;
+
+      default:
+        result = { error: 'Unknown action: ' + action };
+    }
+
+    // Return response with CORS headers
+    return createCorsResponse(result);
+
+  } catch (error) {
+    console.error('❌ Error:', error.toString());
+    return createCorsResponse({ 
+      success: false, 
+      error: error.toString() 
+    });
+  }
+}
+
+/**
+ * Handle GET requests (optional)
+ */
+function doGet(e) {
+  return createCorsResponse({
+    message: 'Soap Manufacturing API',
+    status: 'running',
+    version: '1.0'
+  });
+}
+
+/**
+ * CREATE CORS RESPONSE
+ * Adds necessary headers to allow requests from any origin
+ */
+function createCorsResponse(data) {
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
 
 /**
  * Initialize sheets with headers
@@ -160,22 +248,34 @@ function getIngredients() {
  */
 function authenticateEmployee(employeeId, password) {
   const sheet = getSheetByName(SHEETS.EMPLOYEES);
-  if (!sheet) return null;
-  
+  if (!sheet) return { success: false, error: 'Employees sheet not found' };
+  if (!employeeId || !password ) return { success: false, error: 'Employees pwd not correct' };
+
+
   const data = sheet.getDataRange().getValues();
-  
+
+  const inputEmployeeId = String(employeeId || '').trim();
+  const inputPassword = String(password || '').trim();
+
   for (let i = 1; i < data.length; i++) {
-    if (data[i][0] === employeeId && data[i][3] === password) {
+    const sheetEmployeeId = String(data[i][0] || '').trim();
+    const sheetPassword = String(data[i][3] || '').trim();
+
+    if (sheetEmployeeId === inputEmployeeId && sheetPassword === inputPassword) {
       return {
-        id: data[i][0],
-        name: data[i][1],
-        role: data[i][2],
-        company: data[i][4] || 'AMAZON'
+        success: true,
+        id: sheetEmployeeId,
+        name: String(data[i][1] || '').trim(),
+        role: String(data[i][2] || '').trim(),
+        company: String(data[i][4] || '').trim() || 'AMAZON'
       };
     }
   }
-  
-  return null;
+
+  return {
+    success: false,
+    error: 'Invalid Employee ID or Password'
+  };
 }
 
 /**
@@ -219,35 +319,48 @@ function submitRawMaterial(payload) {
 }
 
 /**
- * Get latest price per oz for an ingredient
+ * Get latest price per oz for an ingredient from RAW Product Details sheet
+ * FIXED: Queries the actual sheet instead of relying on frontend data
  */
-function getIngredientLatestPrice(ingredient, date) {
+function getIngredientLatestPrice(ingredient, batchDate) {
   const sheet = getSheetByName(SHEETS.RAW_PRODUCT_DETAILS);
-  if (!sheet) return null;
+  if (!sheet) {
+    console.log('RAW Product Details sheet not found');
+    return null;
+  }
 
   const data = sheet.getDataRange().getValues();
   let latestPrice = null;
   let latestDate = null;
+  const ingredientLower = String(ingredient).toLowerCase().trim();
+  const queryDate = new Date(batchDate);
 
+  // Loop through all rows to find matching ingredient with latest date on or before batch date
   for (let i = 1; i < data.length; i++) {
-    if (data[i][3] && data[i][3].toLowerCase() === ingredient.toLowerCase()) {
-      const rowDate = new Date(data[i][0]);
-      const queryDate = new Date(date);
+    const sheetIngredient = String(data[i][3] || '').toLowerCase().trim();
+    const sheetDate = new Date(data[i][0]);
+    const sheetPrice = parseFloat(data[i][6]) || 0; // Price Per OZ is in column 6 (0-indexed)
 
-      if (!latestDate || rowDate <= queryDate) {
-        if (!latestDate || rowDate > latestDate) {
-          latestDate = rowDate;
-          latestPrice = parseFloat(data[i][6]) || 0;
-        }
-      }
+    // Skip if ingredient doesn't match
+    if (sheetIngredient !== ingredientLower) continue;
+
+    // Skip if date is after batch date
+    if (sheetDate > queryDate) continue;
+
+    // Use this price if it's the latest so far
+    if (!latestDate || sheetDate >= latestDate) {
+      latestDate = sheetDate;
+      latestPrice = sheetPrice;
     }
   }
 
+  console.log(`Found price for ${ingredient}: ${latestPrice} per oz`);
   return latestPrice;
 }
 
 /**
  * Submit batch entry
+ * FIXED: Looks up prices from RAW Product Details sheet
  */
 function submitBatch(payload) {
   try {
@@ -258,8 +371,27 @@ function submitBatch(payload) {
 
     const { date, batchId, preparedBy, companyName, items } = payload;
 
+    // Validate required fields
+    if (!date || !batchId || !preparedBy || !companyName) {
+      return { success: false, error: 'Missing required batch fields' };
+    }
+
+    if (!items || items.length === 0) {
+      return { success: false, error: 'No items to submit' };
+    }
+
+    // Add each item to the sheet
     for (const item of items) {
-      const price = item.price || 0;
+      // Look up the latest price for this ingredient from RAW Product Details
+      let price = parseFloat(item.price) || 0;
+      
+      // Try to get the real price from sheet if not provided or if it seems wrong
+      const sheetPrice = getIngredientLatestPrice(item.ingredient, date);
+      if (sheetPrice !== null && sheetPrice > 0) {
+        // Recalculate: weight * price per oz
+        price = parseFloat(item.weight) * sheetPrice;
+        console.log(`Recalculated price for ${item.ingredient}: ${item.weight} oz × $${sheetPrice}/oz = $${price}`);
+      }
       
       sheet.appendRow([
         date,
@@ -279,8 +411,9 @@ function submitBatch(payload) {
 
     return { 
       success: true, 
-      message: `Batch ${batchId} created successfully`,
-      batchId: batchId 
+      message: `Batch ${batchId} created successfully with ${items.length} items`,
+      batchId: batchId,
+      itemCount: items.length
     };
   } catch (error) {
     logActivity(payload.userId, payload.userName, 'BATCH_SUBMIT', 
@@ -291,6 +424,7 @@ function submitBatch(payload) {
 
 /**
  * Get product pricing data
+ * Fixed: Properly aggregates prices and includes batch date
  */
 function getProductPricing(filters) {
   try {
@@ -301,48 +435,100 @@ function getProductPricing(filters) {
     const results = {};
 
     for (let i = 1; i < data.length; i++) {
-      const batchDate = data[i][0];
-      const batchId = data[i][1];
-      const productName = data[i][4];
+      // Get values and convert to strings, handling nulls
+      const batchDate = data[i][0] || '';
+      const batchId = data[i][1] || '';
+      const productName = data[i][4] || '';
       const price = parseFloat(data[i][7]) || 0;
 
+      // Skip empty rows
+      if (!batchId || !productName) continue;
+
+      // Convert date for filtering
+      const dateForComparison = new Date(batchDate);
+
       // Apply filters
-      if (filters.productName && !productName.toLowerCase().includes(filters.productName.toLowerCase())) {
-        continue;
-      }
-      if (filters.batchId && batchId !== filters.batchId) {
-        continue;
-      }
-      if (filters.fromDate && new Date(batchDate) < new Date(filters.fromDate)) {
-        continue;
-      }
-      if (filters.toDate && new Date(batchDate) > new Date(filters.toDate)) {
-        continue;
+      if (filters.productName && filters.productName.trim()) {
+        if (!String(productName).toLowerCase().includes(String(filters.productName).toLowerCase())) {
+          continue;
+        }
       }
 
-      const key = `${batchId}_${productName}_${batchDate}`;
+      if (filters.batchId && filters.batchId.trim()) {
+        if (String(batchId) !== String(filters.batchId)) {
+          continue;
+        }
+      }
+
+      if (filters.fromDate && filters.fromDate.trim()) {
+        if (dateForComparison < new Date(filters.fromDate)) {
+          continue;
+        }
+      }
+
+      if (filters.toDate && filters.toDate.trim()) {
+        if (dateForComparison > new Date(filters.toDate)) {
+          continue;
+        }
+      }
+
+      // Use batchId_productName as key to group by batch and product
+      const key = `${String(batchId)}_${String(productName)}`;
+      
       if (!results[key]) {
         results[key] = {
-          batchDate,
-          batchId,
-          productName,
+          batchDate: formatDate(batchDate),
+          batchId: String(batchId),
+          productName: String(productName),
           totalPrice: 0
         };
       }
+
+      // Add price to total
       results[key].totalPrice += price;
     }
 
+    // Convert to array and sort by date (newest first)
     const resultArray = Object.values(results);
-    logActivity(filters.userId, filters.userName, 'PRICING_SEARCH', 
-      `Searched pricing data with filters`, 'SUCCESS');
+    resultArray.sort((a, b) => {
+      const dateA = new Date(a.batchDate);
+      const dateB = new Date(b.batchDate);
+      return dateB - dateA;
+    });
+
+    logActivity(
+      filters.userId || 'SYSTEM',
+      filters.userName || 'SYSTEM',
+      'PRICING_SEARCH',
+      `Searched pricing data - Found ${resultArray.length} results`,
+      'SUCCESS'
+    );
 
     return { 
       success: true, 
       data: resultArray 
     };
+
   } catch (error) {
+    console.error('Error in getProductPricing:', error);
     return { success: false, error: error.toString() };
   }
+}
+
+/**
+ * Format date helper function
+ */
+function formatDate(date) {
+  if (!date) return '';
+  
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return String(date);
+  
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const year = d.getFullYear();
+  
+  return `${year}-${month}-${day}`;
 }
 
 /**
@@ -363,66 +549,6 @@ function logActivity(userId, userName, action, details, status = 'INFO') {
     ]);
   } catch (error) {
     Logger.log('Error logging activity: ' + error.toString());
-  }
-}
-
-/**
- * Handle POST requests from HTML form
- */
-function doPost(e) {
-  try {
-    const payload = JSON.parse(e.postData.contents);
-    let result;
-
-    switch (payload.action) {
-      case 'authenticate':
-        result = authenticateEmployee(payload.employeeId, payload.password);
-        if (result) {
-          logActivity(result.id, result.name, 'LOGIN', 'User logged in', 'SUCCESS');
-          return ContentService.createTextOutput(JSON.stringify(result))
-            .setMimeType(ContentService.MimeType.JSON);
-        } else {
-          logActivity(payload.employeeId, 'UNKNOWN', 'LOGIN', 'Failed login attempt', 'ERROR');
-          return ContentService.createTextOutput(JSON.stringify({ error: 'Invalid credentials' }))
-            .setMimeType(ContentService.MimeType.JSON);
-        }
-
-      case 'getDropdownData':
-        result = {
-          employees: getEmployees(),
-          products: getProducts(),
-          ingredients: getIngredients()
-        };
-        return ContentService.createTextOutput(JSON.stringify(result))
-          .setMimeType(ContentService.MimeType.JSON);
-
-      case 'submitRawMaterial':
-        result = submitRawMaterial(payload);
-        return ContentService.createTextOutput(JSON.stringify(result))
-          .setMimeType(ContentService.MimeType.JSON);
-
-      case 'submitBatch':
-        result = submitBatch(payload);
-        return ContentService.createTextOutput(JSON.stringify(result))
-          .setMimeType(ContentService.MimeType.JSON);
-
-      case 'getProductPricing':
-        result = getProductPricing(payload);
-        return ContentService.createTextOutput(JSON.stringify(result))
-          .setMimeType(ContentService.MimeType.JSON);
-
-      case 'logActivity':
-        logActivity(payload.userId, payload.userName, payload.action, payload.details, payload.status);
-        return ContentService.createTextOutput(JSON.stringify({ success: true }))
-          .setMimeType(ContentService.MimeType.JSON);
-
-      default:
-        return ContentService.createTextOutput(JSON.stringify({ error: 'Unknown action' }))
-          .setMimeType(ContentService.MimeType.JSON);
-    }
-  } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({ error: error.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
