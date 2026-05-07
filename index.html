@@ -901,36 +901,36 @@ async function callGoogleAppsScript(action, payload = {}) {
         };
 
         // ===== API CALL HELPER =====
-        async function callGoogleAppsScript(action, payload) {
-            try {
-                const requestData = {
-                    action: action,
-                    ...payload
-                };
+        // async function callGoogleAppsScript(action, payload) {
+        //     try {
+        //         const requestData = {
+        //             action: action,
+        //             ...payload
+        //         };
 
-                console.log('📤 Sending to API:', requestData);
+        //         console.log('📤 Sending to API:', requestData);
 
-                const response = await fetch(API_BASE, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestData)
-                });
+        //         const response = await fetch(API_BASE, {
+        //             method: 'POST',
+        //             headers: {
+        //                 'Content-Type': 'application/json'
+        //             },
+        //             body: JSON.stringify(requestData)
+        //         });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+        //         if (!response.ok) {
+        //             throw new Error(`HTTP error! status: ${response.status}`);
+        //         }
 
-                const result = await response.json();
-                console.log('📥 Response from API:', result);
+        //         const result = await response.json();
+        //         console.log('📥 Response from API:', result);
 
-                return result;
-            } catch (error) {
-                console.error('❌ API Error:', error);
-                throw error;
-            }
-        }
+        //         return result;
+        //     } catch (error) {
+        //         console.error('❌ API Error:', error);
+        //         throw error;
+        //     }
+        // }
 
         // ===== INITIALIZATION =====
         document.addEventListener('DOMContentLoaded', function() {
