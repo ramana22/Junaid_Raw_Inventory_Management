@@ -863,8 +863,31 @@
     <script>
         // ===== CONFIG =====
         const SHEET_ID = '1exwbP0rCF7TSngMJm5f_zbVoK39DFjwSejxu9pA7sMw';
-        const API_BASE = 'https://script.google.com/macros/d/AKfycbwSpUTCAjZr0fwCByTrIE36aNA1NWWLYIi46YInYkMe1Ha82y0dmEtnGlUtp4sR9tqa1w/usercallback';
+       const API_BASE = 'https://script.google.com/macros/s/AKfycbwSpUTCAjZr0fwCByTrIE36aNA1NWWLYIi46YInYkMe1Ha82y0dmEtnGlUtp4sR9tqa1w/exec';
 
+async function callGoogleAppsScript(action, payload = {}) {
+    try {
+        const requestData = {
+            action,
+            ...payload
+        };
+
+        console.log('📤 Sending to API:', requestData);
+
+        const response = await fetch(API_BASE, {
+            method: 'POST',
+            body: JSON.stringify(requestData)
+        });
+
+        const result = await response.json();
+        console.log('📥 Response from API:', result);
+
+        return result;
+    } catch (error) {
+        console.error('❌ API Error:', error);
+        throw error;
+    }
+}
         // ===== STATE =====
         let currentUser = null;
         let currentSubmitType = null;
