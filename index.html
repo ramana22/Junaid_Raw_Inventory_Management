@@ -879,36 +879,41 @@
         };
 
         // ===== API CALL HELPER =====
-        async function callGoogleAppsScript(action, payload) {
-            try {
-                const requestData = {
-                    action: action,
-                    ...payload
-                };
+        async function callGoogleAppsScript(action, payload = {}) {
+    try {
+        const requestData = {
+            action: action,
+            ...payload
+        };
 
-                console.log('📤 Sending to API:', requestData);
+        console.log('📤 Sending to API:', requestData);
 
-                const response = await fetch(API_BASE, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestData)
-                });
+        const response = await fetch(API_BASE, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: JSON.stringify(requestData)
+        });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+        const text = await response.text();
+        console.log('📥 Raw response from API:', text);
 
-                const result = await response.json();
-                console.log('📥 Response from API:', result);
-
-                return result;
-            } catch (error) {
-                console.error('❌ API Error:', error);
-                throw error;
-            }
+        let result;
+        try {
+            result = JSON.parse(text);
+        } catch (e) {
+            throw new Error('Invalid JSON response from Apps Script: ' + text);
         }
+
+        console.log('📥 Response from API:', result);
+        return result;
+
+    } catch (error) {
+        console.error('❌ API Error:', error);
+        throw error;
+    }
+}
 
         // ===== INITIALIZATION =====
         document.addEventListener('DOMContentLoaded', function() {
