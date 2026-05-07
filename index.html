@@ -863,31 +863,8 @@
     <script>
         // ===== CONFIG =====
         const SHEET_ID = '1exwbP0rCF7TSngMJm5f_zbVoK39DFjwSejxu9pA7sMw';
-       const API_BASE = 'https://script.google.com/macros/s/AKfycbwWr-tXF75EWKzttN9hPfEklL2FgLc7E0zMSsWfDe43JtAH6UZej41N9e-OWzjsSik6Wg/exec';
+        const API_BASE = 'https://script.google.com/macros/d/AKfycbwSpUTCAjZr0fwCByTrIE36aNA1NWWLYIi46YInYkMe1Ha82y0dmEtnGlUtp4sR9tqa1w/usercallback';
 
-async function callGoogleAppsScript(action, payload = {}) {
-    try {
-        const requestData = {
-            action,
-            ...payload
-        };
-
-        console.log('📤 Sending to API:', requestData);
-
-        const response = await fetch(API_BASE, {
-            method: 'POST',
-            body: JSON.stringify(requestData)
-        });
-
-        const result = await response.json();
-        console.log('📥 Response from API:', result);
-
-        return result;
-    } catch (error) {
-        console.error('❌ API Error:', error);
-        throw error;
-    }
-}
         // ===== STATE =====
         let currentUser = null;
         let currentSubmitType = null;
@@ -901,36 +878,36 @@ async function callGoogleAppsScript(action, payload = {}) {
         };
 
         // ===== API CALL HELPER =====
-        // async function callGoogleAppsScript(action, payload) {
-        //     try {
-        //         const requestData = {
-        //             action: action,
-        //             ...payload
-        //         };
+        async function callGoogleAppsScript(action, payload) {
+            try {
+                const requestData = {
+                    action: action,
+                    ...payload
+                };
 
-        //         console.log('📤 Sending to API:', requestData);
+                console.log('📤 Sending to API:', requestData);
 
-        //         const response = await fetch(API_BASE, {
-        //             method: 'POST',
-        //             headers: {
-        //                 'Content-Type': 'application/json'
-        //             },
-        //             body: JSON.stringify(requestData)
-        //         });
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
 
-        //         if (!response.ok) {
-        //             throw new Error(`HTTP error! status: ${response.status}`);
-        //         }
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
-        //         const result = await response.json();
-        //         console.log('📥 Response from API:', result);
+                const result = await response.json();
+                console.log('📥 Response from API:', result);
 
-        //         return result;
-        //     } catch (error) {
-        //         console.error('❌ API Error:', error);
-        //         throw error;
-        //     }
-        // }
+                return result;
+            } catch (error) {
+                console.error('❌ API Error:', error);
+                throw error;
+            }
+        }
 
         // ===== INITIALIZATION =====
         document.addEventListener('DOMContentLoaded', function() {
