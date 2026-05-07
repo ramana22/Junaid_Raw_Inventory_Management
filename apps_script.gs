@@ -331,31 +331,61 @@ function getIngredientLatestPrice(ingredient, batchDate) {
 
   const data = sheet.getDataRange().getValues();
   let latestPrice = null;
-  let latestDate = null;
+  let latestDateKey = null;
   const ingredientLower = String(ingredient).toLowerCase().trim();
-  const queryDate = new Date(batchDate);
+  const queryDateKey = getDateKey(batchDate);
+
+  if (!queryDateKey) {
+    console.log(`Invalid batch date for ${ingredient}: ${batchDate}`);
+    return null;
+  }
 
   // Loop through all rows to find matching ingredient with latest date on or before batch date
   for (let i = 1; i < data.length; i++) {
     const sheetIngredient = String(data[i][3] || '').toLowerCase().trim();
-    const sheetDate = new Date(data[i][0]);
+    const sheetDateKey = getDateKey(data[i][0]);
     const sheetPrice = parseFloat(data[i][6]) || 0; // Price Per OZ is in column 6 (0-indexed)
 
     // Skip if ingredient doesn't match
     if (sheetIngredient !== ingredientLower) continue;
 
     // Skip if date is after batch date
-    if (sheetDate > queryDate) continue;
+    if (!sheetDateKey || sheetDateKey > queryDateKey) continue;
 
     // Use this price if it's the latest so far
-    if (!latestDate || sheetDate >= latestDate) {
-      latestDate = sheetDate;
+    if (!latestDateKey || sheetDateKey >= latestDateKey) {
+      latestDateKey = sheetDateKey;
       latestPrice = sheetPrice;
     }
   }
 
   console.log(`Found price for ${ingredient}: ${latestPrice} per oz`);
   return latestPrice;
+}
+
+/**
+ * Convert a date value to YYYYMMDD for date-only comparisons.
+ * Google Sheets date cells and yyyy-mm-dd strings can represent different
+ * moments because of timezone handling, so comparing Date objects directly can
+ * skip same-day raw material entries.
+ */
+function getDateKey(value) {
+  if (!value) return null;
+
+  if (Object.prototype.toString.call(value) === '[object Date]' && !isNaN(value.getTime())) {
+    return Number(Utilities.formatDate(value, Session.getScriptTimeZone(), 'yyyyMMdd'));
+  }
+
+  const text = String(value).trim();
+  const match = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    return Number(`${match[1]}${match[2]}${match[3]}`);
+  }
+
+  const date = new Date(text);
+  if (isNaN(date.getTime())) return null;
+
+  return Number(Utilities.formatDate(date, Session.getScriptTimeZone(), 'yyyyMMdd'));
 }
 
 /**
@@ -383,14 +413,15 @@ function submitBatch(payload) {
     // Add each item to the sheet
     for (const item of items) {
       // Look up the latest price for this ingredient from RAW Product Details
+      const weight = parseFloat(item.weight) || 0;
       let price = parseFloat(item.price) || 0;
       
-      // Try to get the real price from sheet if not provided or if it seems wrong
+      // Save total ingredient cost: weight in oz multiplied by latest price per oz.
       const sheetPrice = getIngredientLatestPrice(item.ingredient, date);
       if (sheetPrice !== null && sheetPrice > 0) {
         // Recalculate: weight * price per oz
-        price = parseFloat(item.weight) * sheetPrice;
-        console.log(`Recalculated price for ${item.ingredient}: ${item.weight} oz × $${sheetPrice}/oz = $${price}`);
+        price = weight * sheetPrice;
+        console.log(`Recalculated price for ${item.ingredient}: ${weight} oz x $${sheetPrice}/oz = $${price}`);
       }
       
       sheet.appendRow([
@@ -400,7 +431,7 @@ function submitBatch(payload) {
         preparedBy,
         item.productName,
         item.ingredient,
-        item.weight,
+        weight,
         price,
         new Date()
       ]);

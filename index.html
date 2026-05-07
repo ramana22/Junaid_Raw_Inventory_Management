@@ -319,7 +319,7 @@
         .modal {
             display: none;
             position: fixed;
-            z-index: 1000;
+            z-index: 2000;
             left: 0;
             top: 0;
             width: 100%;
@@ -343,6 +343,8 @@
             max-height: 80vh;
             overflow-y: auto;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            z-index: 2001;
+            position: relative;
         }
 
         .modal-header {
@@ -383,7 +385,8 @@
             gap: 10px;
             justify-content: center;
             margin-top: 20px;
-            z-index: 1001;
+            z-index: 2002;
+            position: relative;
         }
 
         .btn-confirm {
@@ -398,7 +401,7 @@
             transition: all 0.3s;
             min-width: 120px;
             position: relative;
-            z-index: 1001;
+            z-index: 2002;
         }
 
         .btn-confirm:hover:not(:disabled) {
@@ -428,7 +431,7 @@
             transition: all 0.3s;
             min-width: 120px;
             position: relative;
-            z-index: 1001;
+            z-index: 2002;
         }
 
         .btn-cancel:hover:not(:disabled) {
@@ -1012,6 +1015,45 @@
             loadDropdownData();
             setupLoginForm();
             testAPIConnection();
+            
+            // Setup modal event handlers
+            const modal = document.getElementById('confirmationModal');
+            const confirmBtn = document.getElementById('confirmBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const modalContent = document.querySelector('.modal-content');
+            
+            // Prevent modal from closing when clicking inside
+            if (modalContent) {
+                modalContent.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+            
+            // Close modal when clicking outside (on the background)
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        cancelSubmission();
+                    }
+                });
+            }
+            
+            // Ensure buttons are clickable
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    confirmSubmission();
+                });
+            }
+            
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    cancelSubmission();
+                });
+            }
         });
 
         // ===== TEST API CONNECTION =====
@@ -1329,6 +1371,9 @@
                 pricePerOz: parseFloat(pricePerOz.toFixed(8))
             });
 
+            // Store prices globally for batch entry access
+            storeRawMaterialPrices();
+
             // Clear inputs
             document.getElementById('rmIngredient').value = '';
             document.getElementById('rmWeight').value = '';
@@ -1343,6 +1388,7 @@
 
         function removeRawMaterialRow(index) {
             rawMaterialRows.splice(index, 1);
+            storeRawMaterialPrices();
             updateRawMaterialList();
         }
 
@@ -1552,17 +1598,37 @@
             updateBatchList();
         }
 
+        // Store raw material prices globally for batch entry access
+        let globalRawMaterialPrices = {};
+
+        function storeRawMaterialPrices() {
+            // Store prices from rawMaterialRows in a global object
+            globalRawMaterialPrices = {};
+            rawMaterialRows.forEach(row => {
+                const ingredientKey = row.ingredient.toLowerCase();
+                // Store the latest price for each ingredient
+                globalRawMaterialPrices[ingredientKey] = row.pricePerOz;
+            });
+        }
+
         function calculateIngredientPrice(ingredient, weight) {
-            // Find latest price for this ingredient from rawMaterialRows
+            // First, try to find price from stored raw material prices
+            const ingredientKey = ingredient.toLowerCase();
+            
+            if (globalRawMaterialPrices[ingredientKey]) {
+                return weight * globalRawMaterialPrices[ingredientKey];
+            }
+
+            // Second, try to find from current rawMaterialRows
             const ingredientData = rawMaterialRows.find(row => 
-                row.ingredient.toLowerCase() === ingredient.toLowerCase()
+                row.ingredient.toLowerCase() === ingredientKey
             );
 
             if (ingredientData) {
                 return weight * ingredientData.pricePerOz;
             }
 
-            // Mock fallback prices
+            // Only use mock prices as absolute fallback
             const mockPrices = {
                 'cardamon': 1,
                 'tulasi': 0.75,
@@ -1572,7 +1638,7 @@
                 'lemonpeel': 1.48
             };
 
-            const pricePerOz = mockPrices[ingredient.toLowerCase()] || 1;
+            const pricePerOz = mockPrices[ingredientKey] || 1;
             return weight * pricePerOz;
         }
 
